@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+httpx
+feedparser
+markdown
+langchain-core
+langchain-community
+langchain-google-genai
+chromadb
+jinja2
+python-dotenv
+langchain-text-splitters

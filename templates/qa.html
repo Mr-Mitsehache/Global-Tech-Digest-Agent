@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Q&A Trend – Global Tech Digest</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-950 text-slate-100 min-h-screen">
+    <div class="min-h-screen flex flex-col">
+      <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur">
+        <div
+          class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between"
+        >
+          <div class="flex items-center gap-2">
+            <span
+              class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-cyan-400 text-slate-900 font-bold"
+            >
+              GT
+            </span>
+            <div>
+              <div class="text-sm font-semibold tracking-wide">
+                Global Tech Digest
+              </div>
+              <div class="text-xs text-slate-400">
+                Archive Q&amp;A – Trend Insights
+              </div>
+            </div>
+          </div>
+          <nav class="flex items-center gap-4 text-xs text-slate-300">
+            <a href="/" class="hover:text-emerald-400">Digest วันนี้</a>
+            <a href="/qa" class="text-emerald-400">ถามเทรนด์จาก Archive</a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="flex-1">
+        <div class="max-w-6xl mx-auto px-4 py-6 sm:py-10 space-y-6">
+          <!-- Form -->
+          <section
+            class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6"
+          >
+            <h1 class="text-xl sm:text-2xl font-semibold mb-3">
+              ถามเทรนด์จาก Archive ข่าว AI &amp; Cybersecurity
+            </h1>
+            <p class="text-sm text-slate-300 mb-4">
+              ลองถามแนวคำถามประมาณ:
+              <span class="text-emerald-300">
+                “ในช่วงที่ผ่านมา ข่าว ransomware เน้นไปที่อะไรบ้าง?”,
+                “นักลงทุน AI ช่วงนี้ให้ความสำคัญกับอะไร”
+              </span>
+            </p>
+
+            <form method="get" action="/qa" class="space-y-3">
+              <label class="block text-xs font-medium text-slate-300 mb-1">
+                คำถามของคุณ
+              </label>
+              <input
+                type="text"
+                name="q"
+                value="{{ question }}"
+                placeholder="พิมพ์คำถามเกี่ยวกับเทรนด์ข่าว AI / Cyber..."
+                class="w-full rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
+              <button
+                type="submit"
+                class="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-emerald-400"
+              >
+                วิเคราะห์จาก Archive
+              </button>
+            </form>
+          </section>
+
+          {% if answer %}
+          <!-- Answer -->
+          <section
+            class="rounded-2xl border border-emerald-600/40 bg-slate-900/70 p-5 sm:p-6"
+          >
+            <h2 class="text-sm font-semibold text-emerald-300 mb-2">
+              คำตอบจาก Archive
+            </h2>
+            <div class="prose prose-invert max-w-none text-sm">
+              {{ answer | safe }}
+            </div>
+          </section>
+
+          <!-- Sources -->
+          <section
+            class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6"
+          >
+            <h3 class="text-xs font-semibold text-slate-300 mb-2">
+              แหล่งที่มา (จาก digest เดิม)
+            </h3>
+            <div class="space-y-3 max-h-80 overflow-y-auto">
+              {% for s in sources %}
+              <div
+                class="rounded-xl border border-slate-800 bg-slate-900/80 p-3"
+              >
+                <div
+                  class="text-[11px] text-slate-400 flex justify-between mb-1"
+                >
+                  <span>#{{ s.index }}</span>
+                  <span>วันที่: {{ s.date }}</span>
+                </div>
+                <p class="text-xs text-slate-200 whitespace-pre-line">
+                  {{ s.snippet }}
+                </p>
+              </div>
+              {% endfor %}
+            </div>
+          </section>
+          {% endif %}
+        </div>
+      </main>
+
+      <footer
+        class="pt-4 pb-6 text-xs text-slate-500 text-center border-t border-slate-900/80"
+      >
+        Archive RAG · LangGraph + Gemini · Chroma vector store
+      </footer>
+    </div>
+  </body>
+</html>

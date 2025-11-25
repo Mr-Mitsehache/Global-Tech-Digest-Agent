@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>Global Tech Digest – {{ date_str }}</title>
+</head>
+<body>
+  <h1>Global Tech Digest – {{ date_str }}</h1>
+  <div>
+    {{ digest_html | safe }}
+  </div>
+  <p><a href="/archive">← ย้อนกลับไปหน้า Archive</a></p>
+</body>
+</html>
