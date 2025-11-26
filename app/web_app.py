@@ -1,13 +1,13 @@
 # app/web_app.py
 from __future__ import annotations
-
-from fastapi import FastAPI, Request, HTTPException
+from datetime import date
+from fastapi import FastAPI, Request, HTTPException, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from app.graphs.digest_graph import build_digest_graph
 from .config import TEMPLATES_DIR
 from .logging_config import setup_logging
-
+from .digest_service import load_digest_parts
 from .rag_service import rag_answer
 from .digest_service import list_digest_files, load_digest_html
 
@@ -64,17 +64,25 @@ async def index(request: Request):
     """
     หน้า Digest วันนี้ – ใช้กราฟหลาย node รัน pipeline
     """
-    logger.info("Running digest graph for homepage")
-    state = await digest_app.ainvoke({})
-    logger.info("Digest graph finished")
+    today_str = date.today().strftime("%Y-%m-%d")
 
-    ai_html = state.get("ai_html", "ไม่มีข้อมูล")
-    cyber_html = state.get("cyber_html", "ไม่มีข้อมูล")
-    summary_html = state.get("summary_html", "")
+    # 1) พยายามโหลดจากไฟล์ก่อน
+    ai_html, cyber_html, summary_html = load_digest_parts(today_str)
 
-    logger.info(
-        "HTTP / : got sections len(ai)=%d, len(cyber)=%d, len(summary)=%d",
-        len(ai_html), len(cyber_html), len(summary_html),
+    if ai_html and cyber_html and summary_html:
+        logger.info("WebApp: cache HIT for %s, use stored digest", today_str)
+
+    else:
+        logger.info("WebApp: cache MISS for %s, running digest graph", today_str)
+        # 2) ถ้าไฟล์ยังไม่ครบ ให้รันกราฟ 1 รอบ
+        state = await digest_app.ainvoke({})
+        ai_html = state.get("ai_html", "") or "<p>ยังไม่มีเนื้อหาสำหรับหมวด AI</p>"
+        cyber_html = state.get("cyber_html", "") or "<p>ยังไม่มีเนื้อหาสำหรับหมวด Cyber</p>"
+        summary_html = state.get("summary_html", "") or "<p>ยังไม่มีสรุปภาพรวม</p>"
+
+        logger.info(
+            "HTTP / : got sections len(ai)=%d, len(cyber)=%d, len(summary)=%d",
+            len(ai_html), len(cyber_html), len(summary_html),
     )
 
     return templates.TemplateResponse(
@@ -88,27 +96,98 @@ async def index(request: Request):
     )
 
 
-@app.get("/qa", response_class=HTMLResponse)
+@app.get("/qa")
 async def qa_page(request: Request, q: str | None = None):
-    answer = None
-    sources = []
+    answer_html: str | None = None
+    sources: list[dict] = []
+    error: str | None = None
 
     if q:
         try:
-            answer, sources = rag_answer(q)
+            # 1) เรียก RAG
+            answer_text, docs = await rag_answer(q)
+
+            # 2) แปลงคำตอบเป็น <p>...</p> อ่านง่ายในเว็บ
+            paragraphs = [p.strip() for p in answer_text.split("\n") if p.strip()]
+            answer_html = "".join(f"<p>{p}</p>" for p in paragraphs)
+
+            # 3) เตรียม sources สำหรับแสดงด้านล่าง
+            sources = [
+                {
+                    "index": i + 1,
+                    "date": d.metadata.get("date", "ไม่ทราบวันที่"),
+                    "snippet": d.page_content[:400],
+                }
+                for i, d in enumerate(docs)
+            ]
+
         except Exception as e:
-            answer = f"เกิดข้อผิดพลาดขณะประมวลผลคำถาม: {e}"
+            logger.exception("RAG QA error")
+            error = f"เกิดข้อผิดพลาดขณะประมวลผลคำถาม: {e}"
 
     return templates.TemplateResponse(
         "qa.html",
         {
             "request": request,
             "question": q or "",
+            "answer": answer_html,
+            "sources": sources,
+            "error": error,
+        },
+    )
+
+@app.post("/qa", response_class=HTMLResponse)
+async def qa_ask(
+    request: Request,
+    question: str = Form(...),
+):
+    answer, docs = await rag_answer(question)
+
+    sources = [
+        {
+            "date": d.metadata.get("date"),
+            "source": d.metadata.get("source"),
+        }
+        for d in docs
+    ]
+
+    return templates.TemplateResponse(
+        "qa.html",
+        {
+            "request": request,
+            "question": question,
             "answer": answer,
             "sources": sources,
         },
     )
 
+@app.post("/qa")
+async def qa_submit(request: Request, question: str = Form(...)):
+    try:
+        # ✅ เรียก coroutine แบบ async ให้ถูกต้อง
+        answer, sources = await rag_answer(question)
+
+        return templates.TemplateResponse(
+            "qa.html",
+            {
+                "request": request,
+                "question": question,
+                "answer": answer,
+                "sources": sources,
+                "error": None,
+            },
+        )
+    except Exception as e:
+        return templates.TemplateResponse(
+            "qa.html",
+            {
+                "request": request,
+                "question": question,
+                "answer": None,
+                "sources": [],
+                "error": f"เกิดข้อผิดพลาดขณะประมวลผลคำถาม: {e}",
+            },
+        )
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 @app.get("/archive")

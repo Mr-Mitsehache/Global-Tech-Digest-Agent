@@ -11,7 +11,13 @@
 
 เหมาะไว้ใช้เป็น “ข่าวกรอง AI & Cyber ส่วนตัว” + ใช้เป็น sandbox ฝึก LangChain / RAG / FastAPI ไปพร้อมกัน
 
----
+## Stack
+
+- Python 3.12
+- FastAPI + Uvicorn
+- LangGraph + LangChain
+- Google Gemini (chat + embeddings)
+- RSS (feedparser) + httpx
 
 ## ฟีเจอร์หลัก
 
@@ -31,6 +37,26 @@
   - หน้า Q&A trend: `/qa`
 
 ---
+
+## วิธีรัน
+
+```bash
+# 1) สร้างและเปิด venv (ครั้งแรกเท่านั้น)
+python -m venv .venv
+.\.venv\Scripts\activate  # Windows PowerShell
+
+# 2) ติดตั้ง dependency
+pip install -r requirements.txt
+
+# 3) ตั้งค่า environment
+# สร้างไฟล์ .env แล้วใส่
+GOOGLE_API_KEY=YOUR_KEY_HERE
+
+# 4) รันเว็บ
+uvicorn app.web_app:app --reload
+
+# เปิดเบราว์เซอร์ที่
+http://127.0.0.1:8000
 
 ## โครงสร้างโปรเจกต์
 
@@ -56,3 +82,4 @@ project-root/
 │
 ├─ requirements.txt
 └─ .env                   # GOOGLE_API_KEY ฯลฯ
+

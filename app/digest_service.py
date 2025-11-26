@@ -250,21 +250,31 @@ def save_digest_markdown(
     if date_str is None:
         date_str = datetime.now().strftime("%Y-%m-%d")
 
-    html = generate_digest_markdown(ai_html, cyber_html, summary_html, date_str)
-
     DIGESTS_DIR.mkdir(parents=True, exist_ok=True)
-    file_path = DIGESTS_DIR / f"{date_str}.html"
+    # 1) ไฟล์รวมฉบับเต็ม
+    full_html = generate_digest_markdown(ai_html, cyber_html, summary_html, date_str)
+    full_path = DIGESTS_DIR / f"{date_str}.html"
+    full_path.write_text(full_html, encoding="utf-8")
+    logger.info("DigestService: saved full digest %s", full_path)
 
-    try:
-        file_path.write_text(html, encoding="utf-8")
-    except Exception:
-        logger.exception(
-            "DigestService: failed to write digest file %s", file_path
-        )
-        raise
+    # 2) partials แยกหมวด (ให้ web / RAG โหลดง่าย)
+    ai_path = DIGESTS_DIR / f"{date_str}.ai.html"
+    cyber_path = DIGESTS_DIR / f"{date_str}.cyber.html"
+    summary_path = DIGESTS_DIR / f"{date_str}.summary.html"
 
-    logger.info("DigestService: digest saved to %s", file_path)
-    return file_path
+    ai_path.write_text(ai_html, encoding="utf-8")
+    cyber_path.write_text(cyber_html, encoding="utf-8")
+    summary_path.write_text(summary_html, encoding="utf-8")
+
+    logger.info(
+        "DigestService: saved partials for %s (ai=%s, cyber=%s, summary=%s)",
+        date_str,
+        ai_path.name,
+        cyber_path.name,
+        summary_path.name,
+    )
+
+    return full_path
 
 
 # -------------------------------------------------------------------
@@ -306,3 +316,33 @@ def load_digest_html(date_str: str) -> str | None:
         len(content),
     )
     return content
+
+def load_digest_parts(date_str: str) -> tuple[str | None, str | None, str | None]:
+    """
+    โหลด HTML เฉพาะส่วนสำหรับวันนั้น:
+    - ai_html
+    - cyber_html
+    - summary_html
+    ถ้าไฟล์ไหนไม่มี จะคืน None กลับมาแทน
+    """
+    DIGESTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    def _read_partial(suffix: str) -> str | None:
+        path = DIGESTS_DIR / f"{date_str}.{suffix}.html"
+        if not path.exists():
+            return None
+        return path.read_text(encoding="utf-8")
+
+    ai_html = _read_partial("ai")
+    cyber_html = _read_partial("cyber")
+    summary_html = _read_partial("summary")
+
+    logger.info(
+        "DigestService: load_digest_parts(%s) -> ai=%s cyber=%s summary=%s",
+        date_str,
+        bool(ai_html),
+        bool(cyber_html),
+        bool(summary_html),
+    )
+
+    return ai_html, cyber_html, summary_html

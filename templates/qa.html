@@ -1,3 +1,4 @@
+<!-- templates\qa.html -->
 <!DOCTYPE html>
 <html lang="th">
   <head>
@@ -109,6 +110,9 @@
               {% endfor %}
             </div>
           </section>
+          {% endif %}
+          {% if error %}
+            <div class="text-red-400"> {{ error }} </div>
           {% endif %}
         </div>
       </main>

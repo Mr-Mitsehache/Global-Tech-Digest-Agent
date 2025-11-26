@@ -19,7 +19,7 @@ if not GOOGLE_API_KEY:
 
 # --- Paths ---
 DIGESTS_DIR = BASE_DIR / "digests"
-DIGESTS_DIR.mkdir(parents=True, exist_ok=True)
+DIGESTS_DIR.mkdir(exist_ok=True)
 
 RAG_STORE_DIR = BASE_DIR / "rag_store"
 RAG_STORE_DIR.mkdir(exist_ok=True)
