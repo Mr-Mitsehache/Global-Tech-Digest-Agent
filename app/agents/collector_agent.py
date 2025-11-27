@@ -49,18 +49,24 @@ def collector_node(state: DigestState) -> DigestState:
         source = (item.get("source") or "").lower()
         title = (item.get("title") or "").lower()
 
-        if (
-            "security" in source
-            or "hacker" in source
-            or "bleepingcomputer" in source
-            or "cisa" in title
-            or "ransomware" in title
-        ):
+        if any(kw in source for kw in [
+            "hacker",          # The Hacker News
+            "cisa",            # CISA
+            "darknet",         # Darknet Diaries
+            "krebsonsecurity", # Krebs
+            "securityweek",    # SecurityWeek
+            "security",        # generic
+        ]) or any(kw in title for kw in [
+            "ransomware",
+            "malware",
+            "breach",
+            "exploit",
+            "zero-day",
+            "vulnerability",
+        ]):
             item["category"] = "cyber"
-            cyber_count += 1
         else:
             item["category"] = "ai"
-            ai_count += 1
 
     logger.info(
         "Collector: labeled items -> ai=%d, cyber=%d (total=%d)",

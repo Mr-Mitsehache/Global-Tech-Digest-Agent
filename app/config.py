@@ -29,15 +29,20 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 # --- RSS feeds ---
 
 AI_FEEDS = [
-    "https://news.ycombinator.com/rss",
-    "https://www.technologyreview.com/feed/",
-    # เติม feed ด้าน AI/LLM/Agent ที่นายชอบได้เลย
+    "https://www.technologyreview.com/feed/", #เทคโนโลยี
+    "https://magazine.sebastianraschka.com/feed", #การวิจัย Machine Learning และ AI
+    "https://ai-techpark.com/category/ai/feed/", #AI, ML, IoT, ข่าวความปลอดภัยทางไซเบอร์และการวิเคราะห์แนวโน้ม, บทสัมภาษณ์
+    "https://www.artificialintelligence-news.com/feed/rss/", #ข่าวปัญญาประดิษฐ์
+    "https://www.wired.com/feed/tag/ai/latest/rss",
 ]
 
 CYBER_FEEDS = [
-    "https://feeds.feedburner.com/TheHackersNews",
-    "https://www.bleepingcomputer.com/feed/",
-    # เติม feed ด้าน security เพิ่มได้
+    "https://feeds.feedburner.com/TheHackersNews", #สายข่าว Cybersecurity ที่ดังสุด ๆ
+    "https://www.cisa.gov/cybersecurity-advisories/all.xml", #US-CERT / CISA (ถ้าอยากเน้น advisory)
+    "https://podcast.darknetdiaries.com/", #เล่าเคส hack จริง ๆ, story-based
+    "https://krebsonsecurity.com/feed/", #สืบสวนคดี
+    "https://www.securityweek.com/feed/", #SecurityWeek
+    
 ]
 
 # จำนวนข่าวต่อ feed ที่จะดึงมาใช้สร้าง digest
